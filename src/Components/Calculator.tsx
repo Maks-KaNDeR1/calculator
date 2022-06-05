@@ -12,8 +12,8 @@ export const Calculator = () => {
     let [b, setB] = useState<string>('')
     let [sign, setSign] = useState<string>('')
 
-    const [finish, setFinish] = useState(false)
     const [actionSum, setActionSum] = useState(false)
+    const [focus, setFocus] = useState(false)
 
     const equality = () => {
         // if (b === '') setB(a)
@@ -28,9 +28,8 @@ export const Calculator = () => {
             if (b === '' && sign === '') {
                 setA(a += e)
                 setActionSum(false)
-            } if (a !== '' && b !== '' && finish) {
+            } if (a !== '' && b !== '') {
                 setB(b += e)
-                setFinish(false)
                 setActionSum(true)
                 if (a !== '' && b === '') {
                     setActionSum(true)
@@ -45,7 +44,6 @@ export const Calculator = () => {
         }
         if (action.includes(e)) {
             setSign(sign = e)
-            // setActionSum(true)
         }
         if (e === '=') {
             equality()
@@ -63,42 +61,58 @@ export const Calculator = () => {
         if (e === 'C') {
             if (b === '') {
                 setA('')
-                setB('')
                 setSign('')
                 setActionSum(false)
             } else {
                 setB('')
-                setFinish(false)
+            }
+        }
+        if (e === 'A') {
+            if (b === '') {
+                setA(a.slice(0, -2))
+                setSign('')
+                setActionSum(false)
+            } else {
+                setB(b.slice(0, -2))
             }
         }
     }, [a, b])
 
-
     const onClickHandler = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+        setFocus(true)
         let e = event.currentTarget.value
         workWithEvents(e)
     }, [workWithEvents])
 
     const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value
-        console.log(event);
-
-        // let del = event.inputType === 'deleteContentBackward'
-        let e = value.length === 1 ? value : value.slice(-1);
+        let e = value.length === 1 ? value : value.slice(-1)
         workWithEvents(e)
+        // if (value < a) {
+        //     // setA(value)
+        //     workWithEvents(value)
+        //     // setB(value)
+        //     console.log(value)
+        // } else if (value.length === 1){
+        //     console.log(value.length)
+        //     workWithEvents(value)
+        // } else {
+        //     console.log(value)
+        //     workWithEvents(value.slice(-1))
+        // }
     }
 
     const onKeyPressHandler = (e: KeyboardEvent<HTMLInputElement>) => {
-        console.log(e.metaKey)
-        console.log(e.key === 'Backspace')
-        console.log(e.key == 'Delete')
-        
-        if (e.code === "Equal") {
-            setA('')
-        } if (e.code === 'NumpadEnter' || e.code === 'Enter') {
-            equality()
-            setActionSum(true)
+        if (e.code === 'NumpadEnter' || e.code === 'Enter') {
+            if (b !== '') {
+                equality()
+                setActionSum(true)
+            }
         }
+    }
+    const onKeyDownHandler = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.code === 'Escape') workWithEvents('C')
+        if (e.code === "Backspace") workWithEvents('A')
     }
 
     const inputElement = useRef<HTMLInputElement | null>(null);
@@ -106,7 +120,7 @@ export const Calculator = () => {
         if (inputElement.current) {
             inputElement.current.focus();
         }
-    }, [onClickHandler]);
+    }, [focus]);
 
 
     return (
@@ -116,21 +130,21 @@ export const Calculator = () => {
                     actionSum ?
                         <div>
                             <div className={style.classSumValue}>
-                                <input value={a} /><span>{sign}</span>
+                                <input value={a} readOnly /><span>{sign}</span>
                             </div>
                             <div className={style.classSumTwoValue}>
                                 <input ref={inputElement} onKeyPress={onKeyPressHandler} autoFocus
-                                    onChange={onChangeHandler} value={!b ? '0' : b} />
+                                    onKeyDown={onKeyDownHandler} onChange={onChangeHandler} value={!b ? '0' : b} />
                             </div>
                         </div>
                         :
                         <div>
                             <div className={style.classSumValue}>
-                                <input value={b} /><span>{sign}</span>
+                                <input value={b} readOnly /><span>{sign}</span>
                             </div>
                             <div className={style.classValue}  >
                                 <input ref={inputElement} onKeyPress={onKeyPressHandler} autoFocus
-                                    onChange={onChangeHandler} value={!a ? '0' : a} />
+                                    onKeyDown={onKeyDownHandler} onChange={onChangeHandler} value={!a ? '0' : a} />
                             </div>
                         </div>
                 }
